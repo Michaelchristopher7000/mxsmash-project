@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { Eye, EyeOff, Lock, CheckCircle } from "lucide-react";
-import axios from "axios";
+import api from "../api/axios";
 
 const ResetPassword = () => {
   const { token } = useParams();
@@ -37,14 +37,17 @@ const ResetPassword = () => {
 
     setLoading(true);
     try {
-      const res = await axios.post("/authRoutes/reset-password", {
+      const res = await api.post("/auth/reset-password", {
         token,
         newPassword,
       });
       setMessage(res.data.message);
       setTimeout(() => navigate("/login"), 3000);
     } catch (err) {
-      setError(err.response?.data?.message || "Something went wrong. Please try again.");
+      setError(
+        err.response?.data?.message ||
+          "Something went wrong. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -130,7 +133,11 @@ const ResetPassword = () => {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#d4a437] transition-colors"
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
                 </button>
               </div>
             </div>
