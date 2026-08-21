@@ -1,5 +1,6 @@
 import prisma from "../config/prisma.js";
 import generateOrderNumber from "../utils/generateOrderNumber.js";
+import sendEmail from "../utils/sendEmail.js";
 
 export const createOrder = async (req, res) => {
   try {
@@ -38,7 +39,6 @@ export const createOrder = async (req, res) => {
       };
     });
 
-    // Generate a unique order number, retrying if a collision happens (very unlikely, but safe)
     let orderNumber;
     let isUnique = false;
     while (!isUnique) {
@@ -56,8 +56,51 @@ export const createOrder = async (req, res) => {
         phone,
         items: { create: orderItemsData },
       },
-      include: { items: true },
+      include: { items: { include: { product: true } } },
     });
+
+    // Send order confirmation email - don't let email failure block the order response
+    try {
+      const user = await prisma.user.findUnique({ where: { id: req.user.userId } });
+      if (user?.email) {
+        const itemsHtml = order.items
+          .map(
+            (item) =>
+              `<tr>
+                <td style="padding: 8px 0; color: #333;">${item.quantity}x ${item.product.name}</td>
+                <td style="padding: 8px 0; text-align: right; color: #333;">₦${item.price.toLocaleString()}</td>
+              </tr>`
+          )
+          .join("");
+
+        await sendEmail({
+          to: user.email,
+          subject: `Order Confirmed - ${order.orderNumber}`,
+          html: `
+            <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto;">
+              <h2 style="color: #d4a437;">Order Confirmed!</h2>
+              <p>Hi ${user.name},</p>
+              <p>Thanks for your order. Here's a summary:</p>
+              <p style="font-weight: bold; font-size: 18px;">Order Number: ${order.orderNumber}</p>
+              <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+                ${itemsHtml}
+                <tr style="border-top: 2px solid #d4a437;">
+                  <td style="padding: 12px 0; font-weight: bold;">Total</td>
+                  <td style="padding: 12px 0; text-align: right; font-weight: bold; color: #d4a437;">₦${order.totalAmount.toLocaleString()}</td>
+                </tr>
+              </table>
+              <p><strong>Delivery Address:</strong> ${order.deliveryAddress}</p>
+              <p><strong>Phone:</strong> ${order.phone}</p>
+              <p style="margin-top: 24px;">We've sent your order details to us via WhatsApp for confirmation. You can track your order status anytime using your order number.</p>
+              <p style="color: #888; font-size: 12px; margin-top: 24px;">Mxsmash Burger - Lekki, Lagos</p>
+            </div>
+          `,
+        });
+      }
+    } catch (emailError) {
+      // Log the error but don't fail the order if email sending fails
+      console.error("Failed to send order confirmation email:", emailError.message);
+    }
 
     res.status(201).json(order);
   } catch (error) {
