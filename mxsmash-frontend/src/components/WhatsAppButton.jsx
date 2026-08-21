@@ -1,10 +1,10 @@
 import { MessageCircle } from "lucide-react";
 
 // Owner's WhatsApp number (international format, no + or spaces)
-const OWNER_WHATSAPP = "2349132827053"; // Replace with real number
+const OWNER_WHATSAPP = "2349135550449"; // Replace with real number
 
 const WhatsAppButton = ({ message }) => {
-  // Use the custom message if provided, otherwise fallback to generic greeting
+  // Use the cust om message if provided, otherwise fallback to generic greeting
   const finalMessage = message || "Hi Mxsmash Burger! I'd like to place an order.";
   const whatsappUrl = `https://wa.me/${OWNER_WHATSAPP}?text=${encodeURIComponent(finalMessage)}`;
 

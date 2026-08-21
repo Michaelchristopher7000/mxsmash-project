@@ -7,7 +7,7 @@ import { useAuth } from "../context/AuthContext";
 
 // Owner's WhatsApp number - keep in sync with WhatsAppButton.jsx
 // TODO: Replace with the real Mxsmash Burger owner's number before launch
-const OWNER_WHATSAPP = "2349132827053";
+const OWNER_WHATSAPP = "2349135550449";
 
 const Checkout = () => {
   const { cart, totalAmount, clearCart } = useCart();
