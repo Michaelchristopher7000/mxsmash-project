@@ -110,7 +110,7 @@ export const createOrder = async (req, res) => {
 };
 
 // GET logged-in user's orders
-export const getMyOrders = async (req, res) => {
+export const getMyOrders = async (req, res) => { 3
   try {
     const orders = await prisma.order.findMany({
       where: { userId: req.user.userId },
